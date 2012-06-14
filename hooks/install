@@ -1,0 +1,77 @@
+#!/bin/bash
+
+#----------------------------------------------------------------------
+# common functions
+#----------------------------------------------------------------------
+
+HOME=`dirname $0`
+. $HOME/riak_common
+
+
+#----------------------------------------------------------------------
+# initialize
+#----------------------------------------------------------------------
+
+OS_BITS=$(GET_OS_BITS)
+
+RIAK_DEB_FILENAME="riak_$(config-get riak_version)_${OS_BITS}.deb"
+PKG_DIR="/tmp/riak_inst"
+
+#----------------------------------------------------------------------
+# set system configurations 
+#----------------------------------------------------------------------
+
+# Increase ulimit for required users
+juju-log "Riak: Setting ulimit to 65536"
+ulimit -n 65536
+
+echo "
+# ulimit settings for Riak CS
+root soft nofile 65536
+root hard nofile 65536
+riak soft nofile 65536
+riak hard nofile 65536" >> /etc/security/limits.conf
+
+#----------------------------------------------------------------------
+# download and install required packages 
+#----------------------------------------------------------------------
+
+# We use curl in this script to download binaries and later to test services
+if [ ! -x /usr/bin/curl ]
+then 
+  juju-log "Riak: Installing cURL dependency"
+  DEBIAN_FRONTEND=noninteractive apt-get -y install curl
+fi
+
+# Riak requires libssl0.9.8 which is not included by default on Ubuntu
+# versions later than 11.04
+if [ $(lsb_release -rs | tr -d '.') -gt 1104 ]
+then 
+  juju-log "Riak: Installing libssl0.9.8 dependency"
+  DEBIAN_FRONTEND=noninteractive apt-get -y install libssl0.9.8
+fi
+
+mkdir -p $PKG_DIR
+cd $PKG_DIR
+
+juju-log "Riak: Downloading ${OS_BITS} Riak package to ${PKG_DIR}"
+curl -O http://downloads.basho.com/riak/CURRENT/${RIAK_DEB_FILENAME}
+
+juju-log "Riak: Installing Riak $(config-get riak_version) package"
+dpkg -i ${PKG_DIR}/${RIAK_DEB_FILENAME}
+
+#----------------------------------------------------------------------
+# set service configurations
+#----------------------------------------------------------------------
+
+juju-log "Riak: Updating IPs in Riak app.config and vm.args files"
+perl -pi -e "s/127.0.0.1/$(unit-get private-address)/g" /etc/riak/app.config /etc/riak/vm.args
+
+SET_RIAK_CONFIG
+
+#----------------------------------------------------------------------
+# clean up  
+#----------------------------------------------------------------------
+
+rm -rf $PKG_DIR
+
