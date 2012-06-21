@@ -3,5 +3,4 @@
 # Note that currently this is run directly after install
 # i.e. 'service apache2 start'
 open-port $(config-get http_port)
-open-port $(config-get handoff_port)
 open-port $(config-get pb_port)
