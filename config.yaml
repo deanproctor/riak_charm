@@ -1,6 +1,6 @@
 options:
   riak_version:
-    default: 1.1.2-1 
+    default: 1.1.4-1 
     type: string 
     description: The desired version of Riak
   storage_backend:
@@ -23,3 +23,7 @@ options:
     default: 8099
     type: int
     description: The TCP port that Riak uses for intra-cluster data handoff 
+  node_name:
+    default: riak
+    type: string
+    description: The name that will be used in conjunction with your instnace IP that will be used to uniquely identify a node
