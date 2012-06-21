@@ -1,0 +1,29 @@
+options:
+  riak_version:
+    default: 1.1.4-1 
+    type: string 
+    description: The desired version of Riak
+  storage_backend:
+    default: bitcask
+    type: string
+    description: The storage backend that Riak should use (bitcask / eleveldb)
+  use_protocol_buffers:
+    default: "yes"
+    type: string
+    description: Use Protocol Buffers interface? (yes / no) 
+  pb_port:
+    default: 8087
+    type: int 
+    description: The TCP port that the Riak Protocol Buffers interface will bind to 
+  http_port:
+    default: 8098
+    type: int
+    description: The TCP port that the Riak HTTP interface will bind to 
+  handoff_port:
+    default: 8099
+    type: int
+    description: The TCP port that Riak uses for intra-cluster data handoff 
+  node_name:
+    default: riak
+    type: string
+    description: The name that will be used in conjunction with your instnace IP that will be used to uniquely identify a node

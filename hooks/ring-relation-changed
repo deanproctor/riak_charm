@@ -1,0 +1,5 @@
+#!/bin/sh
+
+riak-admin join $(config-get node_name)@$(relation-get hostname)
+
+exit 0
