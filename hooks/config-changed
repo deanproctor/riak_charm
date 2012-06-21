@@ -1,0 +1,9 @@
+#!/bin/bash
+
+HOME=`dirname $0`
+. $HOME/riak_common
+
+SET_RIAK_CONFIG
+
+riak stop
+riak start

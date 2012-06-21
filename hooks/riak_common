@@ -1,0 +1,41 @@
+#!/bin/bash
+
+function SET_RIAK_CONFIG() {
+  # storage_backend
+  juju-log "Riak: Updating Riak storage backend"
+  perl -pi -e "s/{storage_backend, riak_kv_.*?_backend},/{storage_backend, riak_kv_$(config-get storage_backend)_backend},/g" /etc/riak/app.config
+
+  # pb_port
+  juju-log "Riak: Updating Protocol Buffers port"
+  perl -pi -e "s/{pb_port,.*?},/{pb_port, $(config-get pb_port) },/g" /etc/riak/app.config
+
+  # http_port
+  juju-log "Riak: Updating HTTP port"
+  perl -pi -e "s/{http, \[ {\"$(unit-get private-address)\",.*?} \]},/{http, \[ {\"$(unit-get private-address)\", $(config-get http_port) } \]},/g" /etc/riak/app.config
+
+  # handoff_port
+  juju-log "Riak: Updating handoff port"
+  perl -pi -e "s/{handoff_port,.*?},/{handoff_port, $(config-get handoff_port) },/g" /etc/riak/app.config
+
+  # use_protocol_buffers
+  if [ $(config-get use_protocol_buffers) == "yes" ]
+  then
+    juju-log "Riak: enabling Protcol Buffers"
+    perl -pi -e "s/^.*?{pb_ip,/\t    {pb_ip,/g" /etc/riak/app.config
+  else
+    juju-log "Riak: disabling Protcol Buffers"
+    perl -pi -e "s/^.*?{pb_ip,/\t   %{pb_ip,/g" /etc/riak/app.config
+  fi
+}
+
+function GET_OS_BITS() {
+  local OS_BITS=""
+
+  case `uname -m` in
+    amd64|x86_64) OS_BITS=amd64 ;;
+    i386|i686)    OS_BITS=i386  ;;
+    *)            juju-log "Riak: Unable to determine OS type. Exiting"; exit ;;
+  esac
+
+  echo $OS_BITS
+}
